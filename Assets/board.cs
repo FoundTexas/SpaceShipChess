@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-public class board : MonoBehaviour
+public class Board : MonoBehaviour
 {
     public int players;
-    static board inst;
+    static Board inst;
     [Range(4, 100)] public int rows = 10, colums = 10;
 
     GameObject[,] matrix;
@@ -28,10 +28,10 @@ public class board : MonoBehaviour
 
         foreach (var item in players)
         {
-            Vector3 vect = item.gameObject.name.Contains("1") ?
-            new Vector3(1, 1, Mathf.RoundToInt(colums / 2)) : new Vector3(rows - 2, 1, Mathf.RoundToInt(colums / 2));
+            Vector3Int vect = item.gameObject.name.Contains("1") ?
+            new Vector3Int(1, 1, Mathf.RoundToInt(colums / 2)) : new Vector3Int(rows - 2, 1, Mathf.RoundToInt(colums / 2));
 
-            item.SetSelector(vect, new Vector2(rows - 1, colums - 1));
+            item.SetSelector(vect, new Vector2Int(rows - 1, colums - 1));
         }
 
         GameObject cubeObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -84,13 +84,33 @@ public class board : MonoBehaviour
         return inst.matrix[(int)cord.x, (int)cord.y];
     }
 
-    static public void UpdateCord(Vector2 cord, Vector2 prevcord, GameObject obj)
+    public static Vector2Int FindObject(GameObject obj)
+    {
+        int row = -1;
+        int column = -1;
+        var list = inst.matrix.Cast<GameObject>().ToList();
+        var index = list.IndexOf(obj);
+        if (index == -1)
+            return new Vector2Int(row, column);
+        row = index / inst.matrix.GetLength(1);
+        column = index % inst.matrix.GetLength(1);
+        return new Vector2Int(row, column);
+    }
+
+    static public bool UpdateCord(Vector2Int cord, GameObject obj)
     {
         if ((cord.x < 0 || cord.y < 0) || (cord.x >= inst.rows || cord.y >= inst.colums))
-            return;
+            return false;
 
-        inst.matrix[(int)prevcord.x, (int)prevcord.y] =  null;
+        Vector2Int remove = FindObject(obj);
 
-        inst.matrix[(int)cord.x, (int)cord.y] =  obj;
+        if(remove.x >= 0)
+        {
+            inst.matrix[remove.x, remove.y] = null;
+        }
+
+        inst.matrix[cord.x, cord.y] = obj;
+
+        return true;
     }
 }

@@ -306,7 +306,7 @@ GameObject:
   - component: {fileID: 313983093}
   - component: {fileID: 313983092}
   m_Layer: 0
-  m_Name: Player1
+  m_Name: P1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -331,6 +331,7 @@ MonoBehaviour:
   plusY: 119
   select: 101
   movPoint: {x: 0, y: 0, z: 0}
+  ships: []
 --- !u!4 &313983093
 Transform:
   m_ObjectHideFlags: 0
@@ -479,7 +480,7 @@ GameObject:
   - component: {fileID: 491372232}
   - component: {fileID: 491372231}
   m_Layer: 0
-  m_Name: Player2
+  m_Name: P2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -502,8 +503,9 @@ MonoBehaviour:
   plusX: 275
   minusY: 274
   plusY: 273
-  select: 304
+  select: 303
   movPoint: {x: 0, y: 0, z: 0}
+  ships: []
 --- !u!4 &491372232
 Transform:
   m_ObjectHideFlags: 0

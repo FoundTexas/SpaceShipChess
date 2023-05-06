@@ -9,11 +9,11 @@ public class Player : MonoBehaviour
     bool adding;
 
     CinemachineVirtualCamera cam;
-    public Vector3 movPoint;
-    Vector2 max, mov;
+    public Vector3Int movPoint;
+    Vector2Int max, mov;
 
     GameObject selector, selected;
-    List<GameObject> ships = new List<GameObject>();
+    public List<GameObject> ships = new List<GameObject>();
 
     private void Awake()
     {
@@ -24,61 +24,11 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
-
-        mov = Vector2.zero;
-        if (Input.GetKey(minusX))
-        {
-            mov -= new Vector2(1, 0);
-        }
-        if (Input.GetKey(plusX))
-        {
-            mov += new Vector2(1, 0);
-        }
-        if (Input.GetKey(minusY))
-        {
-            mov -= new Vector2(0, 1);
-        }
-        if (Input.GetKey(plusY))
-        {
-            mov += new Vector2(0, 1);
-        }
-
-        if (Input.GetKeyDown(select))
-        {
-            if (selected)
-            {
-                adding = false;
-                selected = null;
-            }
-            else if (!adding && !board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z)))
-            {
-                adding = true;
-            }
-            else if (!adding && board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z)))
-            {
-                GameObject g = board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z));
-
-                if (ships.Contains(g))
-                {
-                    selected = g;
-                }
-            }
-            else if (adding)
-            {
-                adding = false;
-                GameObject ship = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                if (!board.tryAdd(ship, movPoint))
-                {
-                    Destroy(ship);
-                }
-                else
-                {
-                    ship.name = "P1 Ship: " + movPoint;
-                    ship.GetComponent<Renderer>().material.color = name.Contains("1") ? new Color(1, 0, 1, 1f) : new Color(1, 1, 0, 1f);
-                    ships.Add(ship);
-                }
-            }
-        }
+        mov = Vector2Int.zero;
+        mov += Input.GetKey(minusX) ? new Vector2Int(-1, 0) : Vector2Int.zero;
+        mov += Input.GetKey(plusX) ? new Vector2Int(1, 0) : Vector2Int.zero;
+        mov += Input.GetKey(minusY) ? new Vector2Int(0, -1) : Vector2Int.zero;
+        mov += Input.GetKey(plusY) ? new Vector2Int(0, 1) : Vector2Int.zero;
 
         if (Vector3.Distance(selector.transform.position, movPoint) >= 0.05f)
         {
@@ -89,46 +39,81 @@ public class Player : MonoBehaviour
             if (selected)
             {
                 selected.transform.position = Vector3.MoveTowards(
-                selected.transform.position, selector.transform.position, speed * Time.deltaTime
-                );
+                selected.transform.position, selector.transform.position, speed * Time.deltaTime);
             }
         }
 
-        if (Vector3.Distance(selector.transform.position, movPoint) < 0.05f && (mov != Vector2.zero))
+        if ((mov != Vector2.zero) && (!Board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z)) ||
+                (Board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z))
+                .name.Contains(gameObject.name) == name.Contains(gameObject.name) && !selected)))
         {
             adding = false;
-
-            if (!board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z)))
+            
+            if (Vector3.Distance(selector.transform.position, movPoint) < 0.05f)
             {
-                movPoint += new Vector3(mov.x, 0, mov.y);
+                movPoint += new Vector3Int(mov.x, 0, mov.y);
 
-                movPoint = new Vector3(
+                movPoint = new Vector3Int(
                     Mathf.Clamp(movPoint.x, 0, max.x),
                     movPoint.y,
                     Mathf.Clamp(movPoint.z, 0, max.y));
-
-                if (selected)
-                    board.UpdateCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z), new Vector2(movPoint.x, movPoint.z), selected);
             }
-            else if ((board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z)).name.Contains("1")
-                == name.Contains("1")))
+
+            if (selected)
             {
-                movPoint += new Vector3(mov.x, 0, mov.y);
+                if (Board.UpdateCord(new Vector2Int(movPoint.x, movPoint.z), selected))
+                {
+                    selected.name = gameObject.name + " Ship: " + movPoint;
+                }
+            }
+        }
 
-                movPoint = new Vector3(
-                    Mathf.Clamp(movPoint.x, 0, max.x),
-                    movPoint.y,
-                    Mathf.Clamp(movPoint.z, 0, max.y));
+        if (Input.GetKeyDown(select))
+        {
+            if (selected)
+            {
+                adding = false;
+                selected = null;
+            }
+            else if (!adding && !Board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z)))
+            {
+                adding = true;
+            }
+            else if (Board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z)))
+            {
+                adding = false;
+                GameObject g = Board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z));
 
-                if (selected)
-                    board.UpdateCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z), new Vector2(movPoint.x, movPoint.z), selected);
+                if (ships.Contains(g))
+                {
+                    selected = g;
+                }
+            }
+            else if (adding && !Board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z)))
+            {
+                adding = false;
+                GameObject ship = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                if (!Board.tryAdd(ship, movPoint))
+                {
+                    Destroy(ship);
+                }
+                else
+                {
+                    ship.name = gameObject.name + " Ship: " + movPoint;
+                    ship.GetComponent<Renderer>().material.color = name.Contains("1") ? new Color(1, 0, 1, 1f) : new Color(1, 1, 0, 1f);
+                    ships.Add(ship);
+                }
+            }
+            else
+            {
+                adding = false;
             }
         }
     }
 
-    public void SetSelector(Vector3 vec, Vector2 maxvalues)
+    public void SetSelector(Vector3Int vec, Vector2Int maxvalues)
     {
-        selector.GetComponent<Renderer>().material.color = name.Contains("1") ? new Color(1, 0, 1, 1f) : new Color(1, 1, 0, 1f);
+        selector.GetComponent<Renderer>().material.color = name.Contains("1") ? new Color(1, 0, 1, 0.2f) : new Color(1, 1, 0, 0.2f);
         //cam.LookAt = selector.transform;
         movPoint = vec;
         selector.transform.position = vec;
