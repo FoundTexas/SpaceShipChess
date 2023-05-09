@@ -4,15 +4,12 @@ using UnityEngine;
 
 public class Ship : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public void FoundTarget(GameObject target)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        HealthBar hptar;
+        if(target.TryGetComponent<HealthBar>(out hptar))
+        {
+            hptar.ChangeHealth(10);
+        }
     }
 }

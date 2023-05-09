@@ -9,17 +9,24 @@ public class HealthBar : MonoBehaviour
 
     Image hpBar;
 
-    private void Start() {
+    private void Start()
+    {
         currentHealth = maxHealth;
 
         hpBar = transform.Find("Canvas").Find("HPBar").GetComponent<Image>();
 
-        ChangeHealth(Random.Range(maxHealth/2, maxHealth));
+        ChangeHealth(Random.Range(maxHealth / 2, maxHealth));
     }
 
     public void ChangeHealth(float value)
     {
-        hpBar.fillAmount = value/maxHealth;
+        currentHealth += value;
+        hpBar.fillAmount = currentHealth / maxHealth;
         hpBar.color = gradient.Evaluate(hpBar.fillAmount);
+
+        if (hpBar.fillAmount <= 0)
+        {
+            Destroy(gameObject);
+        }
     }
 }

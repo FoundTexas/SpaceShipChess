@@ -25,34 +25,58 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
+        if (Vector3.Distance(selector.transform.position, movPoint) >= 0.05f)
+        {
+            selector.transform.position = Vector3.MoveTowards(
+            selector.transform.position, movPoint, speed * Time.deltaTime);
+
+            if (selected)
+            {
+                selected.transform.position = Vector3.MoveTowards(
+                selected.transform.position, movPoint, speed * Time.deltaTime);
+
+                SetTargetAngle(selected, movPoint);
+            }
+        }
+
         mov = Vector2Int.zero;
         mov += Input.GetKey(minusX) ? new Vector2Int(-1, 0) : Vector2Int.zero;
         mov += Input.GetKey(plusX) ? new Vector2Int(1, 0) : Vector2Int.zero;
         mov += Input.GetKey(minusY) ? new Vector2Int(0, -1) : Vector2Int.zero;
         mov += Input.GetKey(plusY) ? new Vector2Int(0, 1) : Vector2Int.zero;
 
-        if (Vector3.Distance(selector.transform.position, movPoint) >= 0.05f)
-        {
-            selector.transform.position = Vector3.MoveTowards(
-                selector.transform.position, movPoint, speed * Time.deltaTime
-            );
 
-            if (selected)
-            {
-                selected.transform.position = Vector3.MoveTowards(
-                selected.transform.position, selector.transform.position, speed * Time.deltaTime);
+        GameObject target = Board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z));
 
-                SetTargetAngle(selected, movPoint);
-            }
-        }
-
-        if ((mov != Vector2.zero) && (!Board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z)) ||
-                (Board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z))
-                .name.Contains(gameObject.name) == name.Contains(gameObject.name) && !selected)))
+        if ((mov != Vector2.zero))
         {
             adding = false;
 
-            if (Vector3.Distance(selector.transform.position, movPoint) < 0.05f)
+            if (Vector3.Distance(selector.transform.position, movPoint) < 0.05f && (!target || (target.name.Contains(gameObject.name) == name.Contains(gameObject.name) && !selected)))
+            {
+                movPoint = new Vector3Int(
+                    Mathf.Clamp(movPoint.x + mov.x, 0, max.x),
+                    movPoint.y,
+                    Mathf.Clamp(movPoint.z + mov.y, 0, max.y));
+            }
+
+            if (selected)
+            {
+                if(Board.UpdateCord(new Vector2Int(movPoint.x, movPoint.z), selected))
+                    selected.name = gameObject.name + " Ship: " + movPoint;
+
+                if (target && (target.name.Contains(gameObject.name) == name.Contains(gameObject.name) && !selected))
+                {
+                    Ship actionship;
+                    if (selected.TryGetComponent<Ship>(out actionship))
+                    {
+                        actionship.FoundTarget(target);
+                    }
+                }
+            }
+
+            /*
+            if (Vector3.Distance(selector.transform.position, movPoint) < 0.05f && (!target))
             {
                 movPoint += new Vector3Int(mov.x, 0, mov.y);
 
@@ -61,6 +85,16 @@ public class Player : MonoBehaviour
                     movPoint.y,
                     Mathf.Clamp(movPoint.z, 0, max.y));
             }
+            else if (Vector3.Distance(selector.transform.position, movPoint) < 0.05f && (target.name.Contains(gameObject.name) == name.Contains(gameObject.name) && !selected))
+            {
+                movPoint += new Vector3Int(mov.x, 0, mov.y);
+
+                movPoint = new Vector3Int(
+                    Mathf.Clamp(movPoint.x, 0, max.x),
+                    movPoint.y,
+                    Mathf.Clamp(movPoint.z, 0, max.y));
+            }
+            */
 
             if (selected && (Board.UpdateCord(new Vector2Int(movPoint.x, movPoint.z), selected)))
             {
@@ -75,21 +109,21 @@ public class Player : MonoBehaviour
                 adding = false;
                 selected = null;
             }
-            else if (!adding && !Board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z)))
+            else if (!adding && !target)
             {
                 adding = true;
             }
-            else if (Board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z)))
+            else if (target)
             {
                 adding = false;
-                GameObject g = Board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z));
+                GameObject g = target;
 
                 if (ships.Contains(g))
                 {
                     selected = g;
                 }
             }
-            else if (adding && !Board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z)))
+            else if (adding && !target)
             {
                 adding = false;
                 GameObject ship = Instantiate(Resources.Load<GameObject>("Prefabs/" + selectedShip), movPoint,
