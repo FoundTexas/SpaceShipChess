@@ -16,10 +16,12 @@ public class Player : MonoBehaviour
     Vector2Int max, mov;
 
     GameObject selector, selected;
+    public string selectedShip {private get; set;}
     public List<GameObject> ships = new List<GameObject>();
 
     private void Awake()
     {
+        selectedShip = "ProtypeShip";
         cam = transform.GetChild(1).GetComponent<CinemachineVirtualCamera>();
         selector = transform.GetChild(0).gameObject;
         cam.Follow = selector.transform;
@@ -95,10 +97,8 @@ public class Player : MonoBehaviour
             else if (adding && !Board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z)))
             {
                 adding = false;
-                //GameObject ship = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                
-                /* //FirstAttempt
-                 Instantiate(ship,transform.position,Quaternion.identity*/
+                GameObject ship = Instantiate(Resources.Load<GameObject>("Prefabs/"+ selectedShip), movPoint,
+                (name.Contains("1")) ?  Quaternion.Euler(0,180,0) : Quaternion.identity);//GameObject.CreatePrimitive(PrimitiveType.Sphere);
 
                 if (!Board.tryAdd(ship, movPoint))
                 {
@@ -107,7 +107,12 @@ public class Player : MonoBehaviour
                 else
                 {
                     ship.name = gameObject.name + " Ship: " + movPoint;
-                    ship.GetComponent<Renderer>().material.color = name.Contains("1") ? new Color(1, 0, 1, 1f) : new Color(1, 1, 0, 1f);
+
+                    foreach (Transform child in ship.transform.GetChild(0))
+                    {
+                        child.GetComponent<Renderer>().material.color = name.Contains("1") ? new Color(1, 0, 1, 1f) : new Color(1, 1, 0, 1f);
+                    }
+                    
                     ships.Add(ship);
                 }
             }
