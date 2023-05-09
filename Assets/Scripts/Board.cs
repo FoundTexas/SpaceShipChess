@@ -20,8 +20,8 @@ public class Board : MonoBehaviour
 
         BoxCollider collider = GetComponent<BoxCollider>();
 
-        collider.size = new Vector3((rows / 2) + 1, 40f, colums / 2);
-        collider.center = new Vector3((rows - 1) / 2f, 1f, (colums - 1) / 2f);
+        collider.size = new Vector3((rows - 1) , 40f, colums -1);
+        collider.center = new Vector3((rows )/2 , 1f, (colums ) / 2f);
         collider.isTrigger = true;
 
         Player[] players = FindObjectsOfType<Player>();

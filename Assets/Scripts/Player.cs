@@ -4,20 +4,16 @@ using Cinemachine;
 
 public class Player : MonoBehaviour
 {
-    public GameObject ship;
-    
-
-    [SerializeField] float speed = 5;
+    public string selectedShip = "ProtypeShip";
+    List<GameObject> ships = new List<GameObject>();
+    Vector3Int movPoint;
     [SerializeField] KeyCode minusX, plusX, minusY, plusY, select;
-    bool adding;
+    [SerializeField] float speed = 5;
 
     CinemachineVirtualCamera cam;
-    public Vector3Int movPoint;
-    Vector2Int max, mov;
-
     GameObject selector, selected;
-    public string selectedShip {private get; set;}
-    public List<GameObject> ships = new List<GameObject>();
+    Vector2Int max, mov;
+    bool adding;
 
     private void Awake()
     {
@@ -45,6 +41,8 @@ public class Player : MonoBehaviour
             {
                 selected.transform.position = Vector3.MoveTowards(
                 selected.transform.position, selector.transform.position, speed * Time.deltaTime);
+
+                SetTargetAngle(selected, movPoint);
             }
         }
 
@@ -53,7 +51,7 @@ public class Player : MonoBehaviour
                 .name.Contains(gameObject.name) == name.Contains(gameObject.name) && !selected)))
         {
             adding = false;
-            
+
             if (Vector3.Distance(selector.transform.position, movPoint) < 0.05f)
             {
                 movPoint += new Vector3Int(mov.x, 0, mov.y);
@@ -64,12 +62,9 @@ public class Player : MonoBehaviour
                     Mathf.Clamp(movPoint.z, 0, max.y));
             }
 
-            if (selected)
+            if (selected && (Board.UpdateCord(new Vector2Int(movPoint.x, movPoint.z), selected)))
             {
-                if (Board.UpdateCord(new Vector2Int(movPoint.x, movPoint.z), selected))
-                {
-                    selected.name = gameObject.name + " Ship: " + movPoint;
-                }
+                selected.name = gameObject.name + " Ship: " + movPoint;
             }
         }
 
@@ -97,8 +92,8 @@ public class Player : MonoBehaviour
             else if (adding && !Board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z)))
             {
                 adding = false;
-                GameObject ship = Instantiate(Resources.Load<GameObject>("Prefabs/"+ selectedShip), movPoint,
-                (name.Contains("1")) ?  Quaternion.Euler(0,180,0) : Quaternion.identity);//GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                GameObject ship = Instantiate(Resources.Load<GameObject>("Prefabs/" + selectedShip), movPoint,
+                Quaternion.Euler(0, (name.Contains("1")) ? 90 : -90, 0));//GameObject.CreatePrimitive(PrimitiveType.Sphere);
 
                 if (!Board.tryAdd(ship, movPoint))
                 {
@@ -112,7 +107,7 @@ public class Player : MonoBehaviour
                     {
                         child.GetComponent<Renderer>().material.color = name.Contains("1") ? new Color(1, 0, 1, 1f) : new Color(1, 1, 0, 1f);
                     }
-                    
+
                     ships.Add(ship);
                 }
             }
@@ -122,6 +117,14 @@ public class Player : MonoBehaviour
             }
         }
     }
+
+    public void SetTargetAngle(GameObject obj, Vector3 mov)
+    {
+        Quaternion targetRotation = Quaternion.LookRotation(mov - obj.transform.position, Vector3.up);
+        Quaternion newRotation = Quaternion.RotateTowards(obj.transform.rotation, targetRotation, 360);
+        obj.transform.rotation = newRotation;
+    }
+
 
     public void SetSelector(Vector3Int vec, Vector2Int maxvalues)
     {
