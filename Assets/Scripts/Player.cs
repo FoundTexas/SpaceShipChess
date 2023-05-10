@@ -113,7 +113,7 @@ public class Player : MonoBehaviour
                 }
                 else
                 {
-                    ship.name = gameObject.name + " Ship: " + movPoint;
+                    ship.name = gameObject.name.Replace("(Clone)", "") + " Ship " + movPoint;
 
                     foreach (Transform child in ship.transform.GetChild(0))
                     {

@@ -20,8 +20,8 @@ public class Board : MonoBehaviour
 
         BoxCollider collider = GetComponent<BoxCollider>();
 
-        collider.size = new Vector3((rows - 1) , 40f, colums -1);
-        collider.center = new Vector3((rows )/2 , 1f, (colums ) / 2f);
+        collider.size = new Vector3((rows - 1), 40f, colums - 1);
+        collider.center = new Vector3((rows) / 2, 1f, (colums) / 2f);
         collider.isTrigger = true;
 
         Player[] players = FindObjectsOfType<Player>();
@@ -50,15 +50,17 @@ public class Board : MonoBehaviour
                 if (x > 1 && x < rows - 2)
                 {
                     float val = Random.Range(0, 11);
-                    matrix[x, y] = (val > 4) ? ( (val < 8) ?Instantiate(ObstacleObject, new Vector3(x, 1, y), Quaternion.identity, transform.Find("BoardObjs")) : 
-                    Instantiate(DamageObject, new Vector3(x, 1, y), Quaternion.identity, transform.Find("BoardObjs"))) : 
+                    matrix[x, y] = (val > 4) ? ((val < 8) ? Instantiate(ObstacleObject, new Vector3(x, 1, y), Quaternion.identity, transform.Find("BoardObjs")) :
+                    Instantiate(DamageObject, new Vector3(x, 1, y), Quaternion.identity, transform.Find("BoardObjs"))) :
                     ((val == 4) ? Instantiate(HPObject, new Vector3(x, 1, y), Quaternion.identity, transform.Find("BoardObjs")) : null);
                     if (matrix[x, y])
                     {
-                        matrix[x, y].name = matrix[x, y].name + "(" + x + ", " + y + ")";
-                        if(matrix[x, y].name.Contains("DamageObject"))
+                        matrix[x, y].name = matrix[x, y].name.Replace("(Clone)", "") + " (" + x + ", " + y + ") ";
+                        if (matrix[x, y].name.Contains("DamageObject"))
                         {
-                             matrix[x, y].SetActive(false);
+                            matrix[x, y].SetActive(false);
+
+                            matrix[x, y].name += " :" + ScaleNumber( Random.Range(10, 21));
                         }
                     }
                 }
@@ -73,6 +75,14 @@ public class Board : MonoBehaviour
         Destroy(ObstacleObject);
         Destroy(HPObject);
         Destroy(DamageObject);
+    }
+
+    public static int ScaleNumber(int number)
+    {
+        int midpoint = (inst.rows + inst.colums) / 2;
+        int distanceFromMidpoint = Mathf.Abs(number - midpoint);
+        double scaleFactor = 1.0 + (distanceFromMidpoint / (double)midpoint);
+        return (int)(number * scaleFactor);
     }
 
     static public bool tryAdd(GameObject add, Vector3 cord)
@@ -115,7 +125,7 @@ public class Board : MonoBehaviour
 
         Vector2Int remove = FindObject(obj);
 
-        if(remove.x >= 0)
+        if (remove.x >= 0)
         {
             inst.matrix[remove.x, remove.y] = null;
         }

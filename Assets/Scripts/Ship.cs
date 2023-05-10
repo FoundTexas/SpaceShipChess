@@ -19,7 +19,12 @@ public class Ship : MonoBehaviour
             HealthBar hptar;
             if (TryGetComponent<HealthBar>(out hptar))
             {
-                hptar.ChangeHealth(-10);
+                int colonIndex = target.name.IndexOf(":");
+                string numStr = target.name.Substring(colonIndex + 1);
+                int num = int.Parse(numStr);
+                hptar.ChangeHealth(num * -1);
+                target.SetActive(true);
+                Destroy(target, 0.3f);
             }
         }
         else if (cooldown <= 0)
@@ -37,7 +42,7 @@ public class Ship : MonoBehaviour
         HealthBar hptar;
         if (target.TryGetComponent<HealthBar>(out hptar))
         {
-            hptar.ChangeHealth(0.5f);
+            hptar.ChangeHealth(1);
         }
     }
     public virtual void HostileAction(GameObject target)
