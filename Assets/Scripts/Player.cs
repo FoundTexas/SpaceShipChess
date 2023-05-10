@@ -11,7 +11,7 @@ public class Player : MonoBehaviour
     [SerializeField] float speed = 5;
 
     CinemachineVirtualCamera cam;
-    GameObject selector, selected;
+    public GameObject selector, selected, target;
     Vector2Int max, mov;
     bool adding;
 
@@ -46,14 +46,15 @@ public class Player : MonoBehaviour
         mov += Input.GetKey(plusY) ? new Vector2Int(0, 1) : Vector2Int.zero;
 
 
-        GameObject target = Board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z));
+        target = Board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z));
 
         if ((mov != Vector2.zero))
         {
-            adding = false;
 
-            if (Vector3.Distance(selector.transform.position, movPoint) < 0.05f && (!target || (target.name.Contains(gameObject.name) == name.Contains(gameObject.name) && !selected)))
+            if (Vector3.Distance(selector.transform.position, movPoint) < 0.05f && (!target || (target.name.Contains(gameObject.name) && !selected) || !target.activeInHierarchy))
             {
+                adding = false;
+
                 movPoint = new Vector3Int(
                     Mathf.Clamp(movPoint.x + mov.x, 0, max.x),
                     movPoint.y,
@@ -65,8 +66,9 @@ public class Player : MonoBehaviour
                 if(Board.UpdateCord(new Vector2Int(movPoint.x, movPoint.z), selected))
                     selected.name = gameObject.name + " Ship: " + movPoint;
 
-                if (target && (target.name.Contains(gameObject.name) == name.Contains(gameObject.name) && !selected))
+                if (target)
                 {
+                    Debug.Log("Finding:");
                     Ship actionship;
                     if (selected.TryGetComponent<Ship>(out actionship))
                     {
@@ -74,33 +76,9 @@ public class Player : MonoBehaviour
                     }
                 }
             }
-
-            /*
-            if (Vector3.Distance(selector.transform.position, movPoint) < 0.05f && (!target))
-            {
-                movPoint += new Vector3Int(mov.x, 0, mov.y);
-
-                movPoint = new Vector3Int(
-                    Mathf.Clamp(movPoint.x, 0, max.x),
-                    movPoint.y,
-                    Mathf.Clamp(movPoint.z, 0, max.y));
-            }
-            else if (Vector3.Distance(selector.transform.position, movPoint) < 0.05f && (target.name.Contains(gameObject.name) == name.Contains(gameObject.name) && !selected))
-            {
-                movPoint += new Vector3Int(mov.x, 0, mov.y);
-
-                movPoint = new Vector3Int(
-                    Mathf.Clamp(movPoint.x, 0, max.x),
-                    movPoint.y,
-                    Mathf.Clamp(movPoint.z, 0, max.y));
-            }
-            */
-
-            if (selected && (Board.UpdateCord(new Vector2Int(movPoint.x, movPoint.z), selected)))
-            {
-                selected.name = gameObject.name + " Ship: " + movPoint;
-            }
         }
+
+        target = Board.checkCord(new Vector2(movPoint.x, movPoint.z));
 
         if (Input.GetKeyDown(select))
         {
@@ -127,7 +105,7 @@ public class Player : MonoBehaviour
             {
                 adding = false;
                 GameObject ship = Instantiate(Resources.Load<GameObject>("Prefabs/" + selectedShip), movPoint,
-                Quaternion.Euler(0, (name.Contains("1")) ? 90 : -90, 0));//GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                Quaternion.Euler(0, (name.Contains("1")) ? 90 : -90, 0),transform);//GameObject.CreatePrimitive(PrimitiveType.Sphere);
 
                 if (!Board.tryAdd(ship, movPoint))
                 {

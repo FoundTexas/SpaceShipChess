@@ -37,6 +37,9 @@ public class Board : MonoBehaviour
         GameObject cubeObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
         GameObject ObstacleObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         ObstacleObject.GetComponent<Renderer>().material.color = Color.red;
+        GameObject DamageObject = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        DamageObject.GetComponent<Renderer>().material.color = new Color(1.0f, 0.5f, 0.0f);
+        DamageObject.name = "DamageObject";
         GameObject HPObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         HPObject.GetComponent<Renderer>().material.color = Color.green;
 
@@ -46,14 +49,21 @@ public class Board : MonoBehaviour
             {
                 if (x > 1 && x < rows - 2)
                 {
-                    float val = Random.Range(0, 6);
-                    matrix[x, y] = (val > 4) ? (Instantiate(ObstacleObject, new Vector3(x, 1, y), Quaternion.identity, transform)) :
-                    ((val == 4) ? Instantiate(HPObject, new Vector3(x, 1, y), Quaternion.identity, transform) : null);
+                    float val = Random.Range(0, 11);
+                    matrix[x, y] = (val > 4) ? ( (val < 8) ?Instantiate(ObstacleObject, new Vector3(x, 1, y), Quaternion.identity, transform.Find("BoardObjs")) : 
+                    Instantiate(DamageObject, new Vector3(x, 1, y), Quaternion.identity, transform.Find("BoardObjs"))) : 
+                    ((val == 4) ? Instantiate(HPObject, new Vector3(x, 1, y), Quaternion.identity, transform.Find("BoardObjs")) : null);
                     if (matrix[x, y])
-                        matrix[x, y].name = "(" + x + ", " + y + ")";
+                    {
+                        matrix[x, y].name = matrix[x, y].name + "(" + x + ", " + y + ")";
+                        if(matrix[x, y].name.Contains("DamageObject"))
+                        {
+                             matrix[x, y].SetActive(false);
+                        }
+                    }
                 }
 
-                GameObject g = Instantiate(cubeObject, new Vector3(x, 0, y), Quaternion.identity, transform);
+                GameObject g = Instantiate(cubeObject, new Vector3(x, 0, y), Quaternion.identity, transform.Find("BoardGrid"));
                 g.GetComponent<Renderer>().material.color = ((x + y) % 2 == 0) ? Color.black : Color.white;
                 g.name = "(" + x + ", " + y + ")";
             }
@@ -62,6 +72,7 @@ public class Board : MonoBehaviour
         Destroy(cubeObject);
         Destroy(ObstacleObject);
         Destroy(HPObject);
+        Destroy(DamageObject);
     }
 
     static public bool tryAdd(GameObject add, Vector3 cord)

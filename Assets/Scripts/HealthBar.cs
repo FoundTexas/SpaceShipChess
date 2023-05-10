@@ -20,6 +20,7 @@ public class HealthBar : MonoBehaviour
 
     public void ChangeHealth(float value)
     {
+        Debug.Log("Reducing HP of: " + gameObject.name);
         currentHealth += value;
         hpBar.fillAmount = currentHealth / maxHealth;
         hpBar.color = gradient.Evaluate(hpBar.fillAmount);
