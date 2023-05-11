@@ -11,7 +11,7 @@ public class Player : MonoBehaviour
     [SerializeField] float speed = 5;
 
     CinemachineVirtualCamera cam;
-    public GameObject selector, selected, target;
+    public GameObject selector, selected;
     Vector2Int max, mov;
     bool adding;
 
@@ -25,33 +25,54 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
-        if (Vector3.Distance(selector.transform.position, movPoint) >= 0.05f)
+        // Check if the selector is moving
+        bool isMoving = Vector3.Distance(selector.transform.position, movPoint) >= 0.05f;
+
+        // If selector is moving, move it towards the destination point
+        SelectionMovement(isMoving);
+
+        // Calculate the movement based on the input keys pressed
+        GetMovementVector();
+
+        // Revise the desired moevement to perform to check if it is valid and handells the interactions
+        CheckBoardMovement(isMoving, Board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z)));
+        
+        // Logic to execute on Input key "select"
+        SelectInputAction(Board.checkCord(new Vector2(movPoint.x, movPoint.z)));
+    }
+
+    void SelectionMovement(bool isMoving)
+    {
+        if (isMoving)
         {
             selector.transform.position = Vector3.MoveTowards(
-            selector.transform.position, movPoint, speed * Time.deltaTime);
+                selector.transform.position, movPoint, speed * Time.deltaTime);
 
+            // If a ship is selected, move it towards the destination point as well
             if (selected)
             {
                 selected.transform.position = Vector3.MoveTowards(
-                selected.transform.position, movPoint, speed * Time.deltaTime);
-
+                    selected.transform.position, movPoint, speed * Time.deltaTime);
+                // Set the target angle of the ship towards the destination point
                 SetTargetAngle(selected, movPoint);
             }
         }
-
+    }
+    void GetMovementVector()
+    {
         mov = Vector2Int.zero;
         mov += Input.GetKey(minusX) ? new Vector2Int(-1, 0) : Vector2Int.zero;
         mov += Input.GetKey(plusX) ? new Vector2Int(1, 0) : Vector2Int.zero;
         mov += Input.GetKey(minusY) ? new Vector2Int(0, -1) : Vector2Int.zero;
         mov += Input.GetKey(plusY) ? new Vector2Int(0, 1) : Vector2Int.zero;
+    }
+    void CheckBoardMovement(bool isMoving, GameObject target)
+    {
+        bool hasMoved = mov != Vector2Int.zero;
 
-
-        target = Board.checkCord(new Vector2(mov.x + movPoint.x, mov.y + movPoint.z));
-
-        if ((mov != Vector2.zero))
+        if (hasMoved)
         {
-
-            if (Vector3.Distance(selector.transform.position, movPoint) < 0.05f && (!target || (target.name.Contains(gameObject.name) && !selected) || !target.activeInHierarchy))
+            if (!isMoving && (!target || (target.name.Contains(gameObject.name) && !selected) || !target.activeInHierarchy))
             {
                 adding = false;
 
@@ -60,10 +81,9 @@ public class Player : MonoBehaviour
                     movPoint.y,
                     Mathf.Clamp(movPoint.z + mov.y, 0, max.y));
             }
-
-            if (selected)
+            if (!isMoving && selected)
             {
-                if(Board.UpdateCord(new Vector2Int(movPoint.x, movPoint.z), selected))
+                if (Board.UpdateCord(new Vector2Int(movPoint.x, movPoint.z), selected))
                     selected.name = gameObject.name + " Ship: " + movPoint;
 
                 if (target)
@@ -77,9 +97,9 @@ public class Player : MonoBehaviour
                 }
             }
         }
-
-        target = Board.checkCord(new Vector2(movPoint.x, movPoint.z));
-
+    }
+    void SelectInputAction(GameObject target)
+    {
         if (Input.GetKeyDown(select))
         {
             if (selected)
@@ -105,7 +125,7 @@ public class Player : MonoBehaviour
             {
                 adding = false;
                 GameObject ship = Instantiate(Resources.Load<GameObject>("Prefabs/" + selectedShip), movPoint,
-                Quaternion.Euler(0, (name.Contains("1")) ? 90 : -90, 0),transform);//GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                Quaternion.Euler(0, (name.Contains("1")) ? 90 : -90, 0), transform);//GameObject.CreatePrimitive(PrimitiveType.Sphere);
 
                 if (!Board.tryAdd(ship, movPoint))
                 {
@@ -123,13 +143,10 @@ public class Player : MonoBehaviour
                     ships.Add(ship);
                 }
             }
-            else
-            {
-                adding = false;
-            }
         }
     }
 
+    // Public Methods
     public void SetTargetAngle(GameObject obj, Vector3 mov)
     {
         Quaternion targetRotation = Quaternion.LookRotation(mov - obj.transform.position, Vector3.up);
@@ -141,10 +158,9 @@ public class Player : MonoBehaviour
     public void SetSelector(Vector3Int vec, Vector2Int maxvalues)
     {
         selector.GetComponent<Renderer>().material.color = name.Contains("1") ? new Color(1, 0, 1, 0.2f) : new Color(1, 1, 0, 0.2f);
-        //cam.LookAt = selector.transform;
+        cam.LookAt = selector.transform;
         movPoint = vec;
         selector.transform.position = vec;
         max = maxvalues;
-
     }
 }

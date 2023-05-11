@@ -14,15 +14,14 @@ public class HealthBar : MonoBehaviour
         currentHealth = maxHealth;
 
         hpBar = transform.Find("Canvas").Find("HPBar").GetComponent<Image>();
-
-        ChangeHealth(Random.Range(maxHealth / 2, maxHealth));
     }
 
     public void ChangeHealth(float value)
     {
-        Debug.Log("Reducing HP of: " + gameObject.name);
         currentHealth += value;
+        Debug.Log("Damage: " + gameObject.name + " hp:" + currentHealth);
         hpBar.fillAmount = currentHealth / maxHealth;
+        Debug.Log(hpBar.fillAmount);
         hpBar.color = gradient.Evaluate(hpBar.fillAmount);
 
         if (hpBar.fillAmount <= 0)
